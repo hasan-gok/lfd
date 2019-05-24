@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 from datetime import datetime
 import os
@@ -65,15 +66,22 @@ def plot(history):
     plt.show()
 
 
-def distinct_cols(matrix: np.ndarray):
-    matrix = matrix.copy()
-    row_size = matrix.shape[0]
-    for col in range(matrix.shape[1]):
-        column = matrix[:, col]
-        for c_i in range(col + 1, matrix.shape[1]):
-            column_i = matrix[:, c_i]
-            eq = np.equal(column, column_i)
-            diff = eq[eq == True].shape[0]
-            if diff == row_size:
-                matrix[:, c_i] = -1
-    return np.unique(np.where(matrix != -1)[1])
+def split(features, labels, test_size):
+    n_samples = labels.shape[0]
+    n_classes = labels.shape[1]
+    if test_size > 1:
+        test_size = test_size // n_samples
+    train, test = None, None
+    for i in range(n_classes):
+        sample_i = np.where(labels[:, i] == 1)[0]
+        np.random.shuffle(sample_i)
+        t_size = int(sample_i.shape[0] * test_size)
+        if i == 0:
+            test = sample_i[:t_size]
+            train = sample_i[t_size:]
+        else:
+            test = np.concatenate([test, sample_i[:t_size]])
+            train = np.concatenate([train, sample_i[t_size:]])
+    np.random.shuffle(train)
+    np.random.shuffle(test)
+    return features[train], features[test], labels[train], labels[test]

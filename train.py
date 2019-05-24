@@ -1,27 +1,35 @@
 import data_ops as ld
 import sklearn.model_selection as ms
 import joblib
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier as ABC
+from sklearn.tree import DecisionTreeClassifier as DTC
 import datetime
 import numpy as np
 import os
 
-train_inputs, train_labels = ld.load_train()
-train_labels = np.argmax(train_labels, axis=1)
-train_features, test_features, train_labels, test_labels = ms.train_test_split(train_inputs, train_labels,
-                                                                               test_size=0.1,
-                                                                               shuffle=True, random_state=35)
+train_features, train_labels = ld.load_train()
+train_f, test_f, train_l, test_l = ld.split(train_features, train_labels, 0.2)
+
 test_inputs = ld.load_test()
-NROF_CLASSES = 2
+N_CLASS = train_labels.shape[1]
 FEATURE_SIZE = train_features.shape[1]
 
-for i in range(500):
-    dt = DecisionTreeClassifier(criterion='entropy', splitter='random')
-    dt.fit(train_features, train_labels)
-    acc = dt.score(test_features, test_labels)
-    tr_acc = dt.score(train_features, train_labels)
-    print(acc, tr_acc)
-    if acc > 0.9 and tr_acc > 0.9:
-        predictions = dt.predict(test_inputs)
-        ld.save_predictions(predictions, os.getcwd(), i)
-        joblib.dump(dt, 'dt-' + datetime.datetime.now().strftime('%Y%m%d-%H%M') + '-' + str(i) + '.joblib')
+train_l = np.argmax(train_l, axis=1)
+test_l = np.argmax(test_l, axis=1)
+max_tr, max_test = 0.0, 0.0
+best_m = None
+for i in range(5000):
+    model = DTC(splitter='random', min_samples_split=10)
+    model.fit(train_f, train_l)
+    train_score, test_score = model.score(train_f, train_l), model.score(test_f, test_l)
+    if test_score > max_test:
+        max_tr = train_score
+        max_test = test_score
+        best_m = model
+    if (i + 49) % 50 == 0:
+        print(max_tr, max_test, i)
+
+if max_test >= 0.85:
+    preds = best_m.predict(test_inputs)
+    ld.save_predictions(preds, os.getcwd(), 0)
+    joblib.dump(best_m, 'dct-' + datetime.datetime.now().strftime('%Y%m%d-%H%M') + '-' + str(i) + '.joblib')
