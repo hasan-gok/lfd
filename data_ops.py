@@ -42,46 +42,10 @@ def load_test():
     return np.asarray(inputs, dtype=np.float32)
 
 
-def save_predictions(predictions, path, i):
-    if not os.path.isdir(path):
-        raise NotADirectoryError
-    with open(os.path.join(path, 'Submission-' + datetime.now().strftime('%Y%m%d-%H%M') + '-' + str(i) + '.csv'), 'w',
+def save_predictions(predictions):
+    with open(os.path.join(os.getcwd(), 'Submission-' + datetime.now().strftime('%Y%m%d-%H%M%S') + '.csv'), 'w',
               newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['ID', 'Predicted'])
         for i in range(predictions.shape[0]):
             writer.writerow([i + 1, predictions[i]])
-
-
-def plot(history):
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    train_loss, val_loss, train_acc, val_acc = history['loss'], history['val_loss'], history['binary_accuracy'], \
-                                               history['val_binary_accuracy']
-    ax1.plot(np.arange(0, len(train_loss), 1), history['loss'], label='Training loss')
-    ax1.plot(np.arange(0, len(val_loss), 1), history['val_loss'], label='Validation loss')
-    ax1.set_ylim((0, 10))
-    ax2.plot(np.arange(0, len(train_acc), 1), history['binary_accuracy'], label='Training accuracy')
-    ax2.plot(np.arange(0, len(val_acc), 1), history['val_binary_accuracy'], label='Validation accuracy')
-    ax2.set_ylim((0, 1))
-    plt.show()
-
-
-def split(features, labels, test_size):
-    n_samples = labels.shape[0]
-    n_classes = labels.shape[1]
-    if test_size > 1:
-        test_size = test_size // n_samples
-    train, test = None, None
-    for i in range(n_classes):
-        sample_i = np.where(labels[:, i] == 1)[0]
-        np.random.shuffle(sample_i)
-        t_size = int(sample_i.shape[0] * test_size)
-        if i == 0:
-            test = sample_i[:t_size]
-            train = sample_i[t_size:]
-        else:
-            test = np.concatenate([test, sample_i[:t_size]])
-            train = np.concatenate([train, sample_i[t_size:]])
-    np.random.shuffle(train)
-    np.random.shuffle(test)
-    return features[train], features[test], labels[train], labels[test]
