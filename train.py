@@ -4,19 +4,17 @@ from sklearn.tree import DecisionTreeClassifier
 import datetime
 import numpy as np
 
-train_features, train_labels = ld.load_train()
-test_inputs = ld.load_test()
-train_labels = np.argmax(train_labels, axis=1)
+train_features, train_labels, test_features = ld.load_data('train.csv', 'test.csv')
 base = joblib.load('20190524-1730-acc70.model')
-base_preds = base.predict(test_inputs)
+base_preds = base.predict(test_features)
 base_acc = 0.7
 max_iters = 100000
 min_diff = base_preds.shape[0]
 for i in range(max_iters):
     model = DecisionTreeClassifier(splitter='random', min_samples_split=12, max_depth=8)
     model.fit(train_features, train_labels)
-    preds = model.predict(test_inputs)
-    diff = np.size(np.where(preds != base_preds)[0])
+    test_preds = model.predict(test_features)
+    diff = np.size(np.where(test_preds != base_preds)[0])
     print(min_diff, '%' + str((i * 100) / max_iters))
     if diff < min_diff:
         min_diff = diff

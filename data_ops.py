@@ -9,18 +9,19 @@ train_file = 'train.csv'
 test_file = 'test.csv'
 
 
-def load_train():
+def load_data(train_path, test_path):
+	return load_train(train_path), load_test(test_path)
+
+def load_train(file):
     inputs = []
     labels = []
-    with open(train_file, 'r') as fp:
+    with open(file, 'r') as fp:
         reader = csv.reader(fp)
         for row in reader:
             try:
                 row_inputs = row[:-1]
-                label_i = int(row[-1])
                 row_inputs = [float(i) for i in row_inputs]
-                row_label = [0.0, 0.0]
-                row_label[label_i] = 1.0
+                row_label = int(row[-1])
                 inputs.append(row_inputs)
                 labels.append(row_label)
             except:
@@ -28,9 +29,9 @@ def load_train():
     return np.asarray(inputs, dtype=np.float32), np.asarray(labels, dtype=np.float32)
 
 
-def load_test():
+def load_test(file):
     inputs = []
-    with open(test_file, 'r') as fp:
+    with open(file, 'r') as fp:
         reader = csv.reader(fp)
         for row in reader:
             try:
